@@ -13,7 +13,7 @@ To sort the list the following order is applied (in a transitive way):
 - An uppercase letter (65->90 inclusive) is always considered greater than a lowercase letter;
 - A lowercase letter (97->122 inclusive) is always considered greater than a numeral.
 - A numeral (48->57 inclusive) is always considered greater than any non-alphanumeric character.
-- Non-alphanumeric characters with ASCII codes below 32 or above 125 are not considered acceptable.
+- Non-alphanumeric characters with ASCII codes below 32 or above 125 are not supported.
 
 The commands in the input string are separated by a Tilde character "~".
 
@@ -26,7 +26,7 @@ The program accepts the following commands:
 + REV: Reverses the order of the elements of list.
 + SORT: Sorts the elements of the list following a certain criteria.
 + SDX: Shifts the elements of the list of one position to the right.
-+ SSX: Shits the elements of the list of one position to the left.
++ SSX: Shifts the elements of the list of one position to the left.
 
 Commands are correctly formatted if written like previously listed. Whitespaces are accepted before and after the command.
 The program will read the input string, whenever a correctly formatted command is found it will execute the corresponding function. This will continue until the string is finished.
