@@ -1,12 +1,12 @@
 # Circular Linked List
 
-RISC-V Assembly project to manage a Circular Linked List. The program also execute a series of commands that are provided as an input string by the user. 
+RISC-V Assembly project to manage a Circular Linked List. The program will also execute a series of commands that are provided as an input string by the user. 
 
 ## Project Details
 
-Each node of the list is 5 byte, divided as follows:
+Each node of the list is 5 bytes, divided as follows:
 - DATA(Byte 0): contains the information which is an integer number that represents an ASCII character.
-- POINTER(Byte 1-4): contains the pointer to the next element of the list or itself it's the only element in the list.
+- POINTER(Byte 1-4): contains the pointer to the next element of the list or itself if it's the only element.
 
 
 To sort the list the following order is applied (in a transitive way):
@@ -19,7 +19,7 @@ The commands in the input string are separated by a Tilde character "~".
 
 ## Commands and execution
 
-The program will accept the following commands:
+The program accepts the following commands:
 + ADD(x): Adds the character "x" to the list.
 + DEL(x): Deletes all the occurences of the character "x" from the list.
 + PRINT: Prints the current content of the list.
