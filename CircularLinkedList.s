@@ -1,17 +1,16 @@
-################################## GESTIONE LISTE CIRCOLARI #################################
-
 .data
+
 listInput: .string "ADD(1) ~ SSX ~ ADD(a) ~ add(B) ~ ADD(B) ~ ADD ~ ADD(9) ~PRINT~SORT(a)~PRINT~DEL(bb) ~DEL(B) ~PRINT~REV~SDX~PRINT"
 newline: .string "\n"
 HeadPointer: .word 0
 
 .text
-la s0,HeadPointer # s0 = Puntatore testa
-la s1,listInput # s1 = Posizione stringa input
+la s0,HeadPointer # s0 = Head Pointer
+la s1,listInput # s1 = Current position inside the input string
 la s4, newline
-addi s2,s4,-1 # s2 = Fine Stringa
-li s3,0 # s3 = Dimensione della lista
-li s10,1 # s10 = Boolean per confronto comando valido
+addi s2,s4,-1 # s2 = End string
+li s3,0 # s3 = List size
+li s10,1 # s10 = 1 used as a Boolean
 
 Main:
     mv a0,s1
@@ -115,7 +114,7 @@ Main:
         li a2,0
         mv s1,a0
         mv a1,s2
-        bge s1,s2,end_string # if (Posizione Stringa == Posizione di fine stringa)
+        bge s1,s2,end_string # if (Current String position == string end)
         li a2,0
         jal find_tilde 
         mv s1,a0
@@ -124,20 +123,19 @@ end_string:
     li a7,10
     ecall 
     
-################################# FUNZIONI RICHIESTE PROGETTO ###############################
-#Input: a0: Carattere da aggiungere // a1: Puntatore testa // a2: Dimensione lista
-#output: a0: Nuova dimensione lista
-
+######################################### FUNCTIONS #########################################
+#Input: a0: Char to add // a1: HeadPointer // a2: List size
+#output: a0: New list size
 ADD:
     beq a2,zero,add_empty_list
     addi a2,a2,1
     lw t0,0(a1)
     mv t3,t0
-    mv t1,t0 #t1 = indirizzo di memoria più grande tra gli elementi della lista
+    mv t1,t0 #t1 = Biggest memory address in the list
     
-    #Ciclo in cui cerco l'indirizzo di memoria più grande per eseguire la add
+    #Loop to find the biggest memory address in the list
     Loop_ADD: 
-        lw t2,1(t0) #t2 = PAHEAD dell'elemento corrente
+        lw t2,1(t0) #t2 = Pointer field of the current element
         blt t2,t1,no_updated_address 
         addi t1,t2,0
         no_updated_address:
@@ -146,7 +144,7 @@ ADD:
             j Loop_ADD
     
     finish_ADD:
-        addi t2,t1,5 #t2 = indirizzo di memoria in cui andare a scrivere il nuovo elemento
+        addi t2,t1,5 #t2 = memory address where to write the element
         sb a0,0(t2)
         sw t3,1(t2)
         sw t2,1(t0)
@@ -161,8 +159,8 @@ ADD:
         mv a0,a2
         jr ra
 #############################################################################################
-#Input: a0: Carattere da rimuovere // a1: Puntatore testa // a2: Dimensione lista
-#output: a0: Nuova dimensione lista
+#Input: a0: Character to delete // a1: Head Pointer // a2: List size
+#output: a0: New list size
 
 DEL:
     bne a2,zero,go_DEL
@@ -176,21 +174,21 @@ DEL:
         sw a1,8(sp)
         sw a2,12(sp)
         mv a0,a1
-        #Cerco l'ultimo elemento della lista per poter tenere aggiornato il suo PAHEAD
-        #nel caso ci sia un cambio di testa
+        #Look for the last element of the list to keep his Pointer field updated
+        #if a change of head happens
         jal find_last_element
-        mv t6,a0 # t6 = indirizzo ultimo nodo della lista
+        mv t6,a0 # t6 = address of the last node of the list
         lw ra,0(sp)
         lw a0,4(sp)
         lw a1,8(sp)
         lw a2,12(sp)
         addi sp,sp,16           
-        add t0,a1,zero #t0 = nodo precedente a quello corrente
-        lw t1,0(t0) #t1 = nodo corrente
+        add t0,a1,zero #t0 = Node preciding the current one
+        lw t1,0(t0) #t1 = Current node
         li t5,1
         Loop_DEL:
-            lb t2,0(t1) #t2 = carattere del nodo corrente
-            lw t3,1(t1) #t3 = nodo successivo al nodo corrente
+            lb t2,0(t1) #t2 = Current node character
+            lw t3,1(t1) #t3 = Node following the current node
             bne t2,a0,go_Next 
             beq a2,t5,DEL_one_element 
             beq t1,t6,DEL_last_element 
@@ -198,9 +196,9 @@ DEL:
             mv t1,t3
             addi a2,a2,-1
             j Loop_DEL
+            
             go_Next:
                 beq t1,t6,update_last_element_PAHEAD 
-                #Aggiorno i registri per la prossima iterazione
                 addi t1,t1,1          
                 mv t0,t1
                 mv t1,t3
@@ -222,7 +220,7 @@ DEL:
                 mv a0,a2
                 jr ra    
 #############################################################################################
-#input: a0: Puntatore testa // a1: Dimensione lista // a2: newline
+#input: a0: Head Pointer // a1: List size // a2: newline
 
 PRINT:
     bne a1,zero,go_PRINT
@@ -243,8 +241,8 @@ PRINT:
             ecall
             jr ra
 #############################################################################################
-#input: a0: Puntatore testa // a1: Dimensione lista
-#output: a0: Nuovo puntatore testa
+#input: a0: Head Pointer // a1: List size
+#output: a0: New Head Pointer
 
 REV:
     li t0,0
@@ -252,10 +250,10 @@ REV:
     jr ra
     go_REV:
         lw t6,0(a0)
-        mv t0,t6 # t0 = nodo corrente
-        lw t1,1(t0) # t1 = nodo successivo al corrente
+        mv t0,t6 # t0 = current node
+        lw t1,1(t0) # t1 = Node following the current node
         Loop_REV:
-            lw t2,1(t1) # t2 = nodo successivo a t1
+            lw t2,1(t1) # t2 = Node following t1
             sw t0,1(t1)
             beq t2,t6, REV_last_element
             mv t0,t1
@@ -267,7 +265,7 @@ REV:
                 jr ra
     
 #############################################################################################
-#input: a0: Puntatore testa // a1: Dimensione lista
+#input: a0: Head Pointer // a1: List size
 
 SSX:
     li t0,0
@@ -280,7 +278,7 @@ SSX:
         jr ra
          
 #############################################################################################
-#input: a0: Puntatore testa // a1: Dimensione lista
+#input: a0: Head Pointer // a1: List size
 
 SDX:
     li t0,0
@@ -299,7 +297,7 @@ SDX:
         jr ra
         
 #############################################################################################
-#input: a0:Puntatore testa // a1: Dimensione lista
+#input: a0: Head Pointer // a1: List size
 
 SORT:
     li t0,1
@@ -310,15 +308,15 @@ SORT:
         sw a0,0(sp)
         sw ra,4(sp)
         jal find_biggest_memory_address
-        addi a1,a0,5 # t0 = indizzo di memoria da cui creare l'array
+        addi a1,a0,5 # t0 = Memory address where I memorize the array
         lw a0,0(sp)
         addi sp,sp,-4
         sw a1,0(sp)
         jal linked_list_to_array
         jal QuickSort
         end_sort:
-            lw a0,4(sp) # a0 = Puntatore testa lista
-            lw a1,0(sp) # a1 = Indirizzo primo elemento array
+            lw a0,4(sp) # a0 = Head Pointer
+            lw a1,0(sp) # a1 = First array element address
             addi sp,sp,8
             jal array_to_sorted_list
             lw ra,0(sp)
@@ -338,7 +336,7 @@ QuickSort:
     sw a1,8(sp)
     jal partition
     addi sp,sp,-4
-    sw a0,0(sp) # a0 = indirizzo di i = posizione finale del perno
+    sw a0,0(sp) # a0 = final position of the pivot
     addi a1,a0,-1 
     lw a0,8(sp) 
     jal QuickSort
@@ -355,11 +353,11 @@ end_quickSort:
     
 #############################################################################################
 #input: a0:left address , a1: right address
-#Output: a0: posizione finale perno
+#Output: a0: final pivot position
 
 
-# i = indice che scorre da left a right-1
-# j = indice che scorre da right-1 a left
+# i = left to right-1 index
+# j = right-1 to left index
 
 partition:
     addi sp,sp,-12
@@ -368,21 +366,21 @@ partition:
     sw a0,8(sp)
     lb a0,0(a1) 
     jal give_prio
-    mv t3,a0 # t3 = Classe di priorità del perno
+    mv t3,a0 # t3 = Priority class of the pivot
     lw a1,0(sp)
     lw a0,8(sp) 
-    lb t2,0(a1) # a0 = carattere Pivot
-    mv t0,a0  # t0 = indice i
+    lb t2,0(a1) # a0 = Pivot character
+    mv t0,a0  # t0 = index i
     mv t1,a1 
-    addi t1,t1,-1  # t1 = indice J = right-1
+    addi t1,t1,-1  # t1 = index j
     
     partition_loop:
         addi sp,sp,-4
         sw t1,0(sp)
         
-        #Cerco con l'indice i il carattere con classe di priorità maggiore del perno
+        #Loop to look for the element with priority class higher than the pivot
         loop_lower:
-            lb t4,0(t0) # t4 = carattere in posizione i
+            lb t4,0(t0) # t4 = character in i position
             addi sp,sp,-16
             sw t3,0(sp)
             sw t2,4(sp)
@@ -390,7 +388,7 @@ partition:
             sw t4,12(sp)
             mv a0,t4
             jal give_prio
-            mv t5,a0 # t5 = Classe di priorità del carattere in posizione i
+            mv t5,a0 # t5 = Priority class of the character in i position
             lw t3,0(sp)
             lw t2,4(sp)
             lw t0,8(sp)
@@ -410,10 +408,10 @@ partition:
             sw t0,0(sp)
             lw t0,16(sp) # t0 = Left
             
-            #Cerco con l'indice j carattere con classe di priorità minore del perno
+            #Loop to look for the element with priority class lower than the pivot
             loop_higher:
                 ble t1,t0,end_higher
-                lb t4,0(t1) # t4 = carattere in posizione J
+                lb t4,0(t1) # t4 = character in j position
                 addi sp,sp,-16
                 sw t3,0(sp)
                 sw t2,4(sp)
@@ -421,7 +419,7 @@ partition:
                 sw t4,12(sp)
                 mv a0,t4
                 jal give_prio
-                mv t5,a0 # t5 = Classe di priorità del carattere in posizione J
+                mv t5,a0 # t5 = Priority class of the character in i position
                 lw t3,0(sp)
                 lw t2,4(sp)
                 lw t1,8(sp)
@@ -440,7 +438,7 @@ partition:
         end_higher:
             lw t0,0(sp) # t0 = i
             addi sp,sp,8
-            lb t6,0(t0) # t6 = Carattere in posizione i
+            lb t6,0(t0) # t6 = character in i position
             bge t0,t1,end_partition # if (i>=j) end
             sb t6,0(t1)
             sb t4,0(t0)
@@ -450,32 +448,32 @@ partition:
         end_partition:
             lw a1,0(sp) # a1 = Right
             sb t6,0(a1) 
-            sb t2,0(t0) # t2 = Carattere perno
+            sb t2,0(t0) # t2 = pivot character
             lw ra,4(sp)
             addi sp,sp,12
             mv a0,t0        
             jr ra 
 #############################################################################################
-#input: a0: Carattere
-#output: a0: Classe di priorità di a0
+#input: a0: Character
+#output: a0: Priority class of a0
 
 give_prio:
-    li t0,65 #lower bound classe 4
-    li t1,90 #upper bound classe 4
+    li t0,65 #lower bound class 4
+    li t1,90 #upper bound class 4
     blt a0,t0,test_3
     bgt a0,t1,test_3
     li a0,4
     jr ra
     test_3:
-        li t0,97 #lower bound classe 3
-        li t1,122 #upper bound classe 3
+        li t0,97 #lower bound class 3
+        li t1,122 #upper bound class 3
         blt a0,t0,test_2
         bgt a0,t1,test_2
         li a0,3
         jr ra
     test_2:
-        li t0,48  #lower bound classe 2
-        li t1,57 #upper bound classe 2
+        li t0,48  #lower bound class 2
+        li t1,57 #upper bound class 2
         blt a0,t0,test_1
         bgt a0,t1,test_1
         li a0,2
@@ -484,12 +482,12 @@ give_prio:
         li a0,1
         jr ra
     
-################################### FUNZIONI PARSING INPUT ##################################
-#Input check_XXX: a0: Posizione corrente nella Stringa // a1: Fine stringa
-#Output check_XXX a0: Posizione Stringa dopo Tilde // a1: Boolean Istruzione Valida
+################################## INPUT PARSING FUNCTIONS ##################################
+#Input check_XXX: a0: Current position in the list input string // a1: end string
+#Output check_XXX a0: String position after tilde // a1: Boolean valid instruction
 
 check_ADD:
-    li a2,0 # a2 = Boolean Valido
+    li a2,0 # a2 = Boolean to validate the command
     li t0,68 #D
     lb t2,0(a0)
     bne t2,t0,ADD_not_valid 
@@ -498,7 +496,7 @@ check_ADD:
     bne t2,t0,ADD_not_valid 
     addi a0,a0,1
     lb t2,0(a0)
-    li t0,40 # parentesi aperta 
+    li t0,40 # ( 
     bne t2,t0,ADD_not_valid
     addi a0,a0,1
     lb t2,0(a0)
@@ -508,7 +506,7 @@ check_ADD:
     blt t2,t0,ADD_not_valid
     addi a0,a0,1
     lb t2,0(a0)
-    li t0,41 # parentesi chiusa 
+    li t0,41 # )
     bne t2,t0,ADD_not_valid 
     addi a0,a0,1
     li a2,1
@@ -533,7 +531,7 @@ check_DEL:
     bne t2,t0,DEL_not_valid 
     addi a0,a0,1
     lb t2,0(a0)
-    li t0,40 #parentesi aperta
+    li t0,40 # (
     bne t2,t0,DEL_not_valid 
     addi a0,a0,1
     lb t2,0(a0)
@@ -543,7 +541,7 @@ check_DEL:
     blt t2,t0,DEL_not_valid
     addi a0,a0,1
     lb t2,0(a0)
-    li t0,41 #parentesi chiusa
+    li t0,41 # )
     bne t2,t0,DEL_not_valid
     addi a0,a0,1
     li a2,1  
@@ -643,20 +641,18 @@ check_SXX:
         addi sp,sp,4
         jr ra
               
-################################# FUNZIONI DI SUPPORTO ######################################
-
-#Input:  a0: Posizione Corrente Stringa 
-#        a1: Fine stringa 
-#        a2: Boolean Istruzione Valida
-#Output: a0:Posizione Stringa dopo tilde // a1: Boolean Istruzione valida  
+################################### HELPER FUNCTIONS ########################################
+#Input:  a0: Current position in the list input string
+#        a1: end string
+#        a2: Boolean valid instruction
+#Output: a0:String position after tilde // a1: Boolean valid instruction
 
 find_tilde:
     bge a0,a1,cmd_finished
     addi sp,sp,-12
     sw a2,8(sp)
     sw a1,4(sp)
-    sw ra,0(sp)
-    #Rimuovo gli spazi bianchi prima della prossima tilde     
+    sw ra,0(sp)  
     jal whitespace_eater
     lw a2,8(sp)
     lw a1,4(sp)
@@ -681,9 +677,8 @@ find_tilde:
         jr ra           
 #############################################################################################
 
-#Input: a0: Posizione stringa da cui controllare gli spazi bianchi // a1: Fine stringa
-#Output: a0: Posizione senza whitespace
-
+#Input: a0: String position from where to check for whitespaces // a1: string end
+#Output: a0: String position without a whitespace
 whitespace_eater:
     li t0,32
     whitespace_Loop:
@@ -697,8 +692,8 @@ whitespace_eater:
         
 #############################################################################################
 
-#Input: a0: posizione nella stringa
-#Output: a0: Carattere da aggiungere/rimuovere
+#Input: a0: String position
+#Output: a0: Char to add/remove
 
 find_char:
     li t0,41
@@ -715,8 +710,8 @@ find_char:
         
 #############################################################################################        
 
-#Input: a0: Puntatore testa
-#Output: a0: Indirizzo memoria ultimo nodo
+#Input: a0: Head Pointer
+#Output: a0: Memory address of the last node
 
 find_last_element:
     lw t0,0(a0)
@@ -732,8 +727,8 @@ end_last_element:
         
 #############################################################################################
 
-#Input: a0: Puntatore testa
-#Output: a0: Indirizzo memoria più grande nella lista
+#Input: a0: Head Pointer
+#Output: a0: Biggest memory address in the list
 
 find_biggest_memory_address:
     lw t0,0(a0)
@@ -753,8 +748,8 @@ find_biggest_memory_address:
            
 #############################################################################################
 
-#Input: a0: Puntatore testa // a1: Indirizzo da cui costruire array
-#Output: a0: Indirizzo inizio array // a1:Indirizzo fine array
+#Input: a0: Head Pointer // a1: Array address
+#Output: a0: array address // a1: end of the array address
 
 linked_list_to_array:
     lw t0,0(a0)
@@ -773,10 +768,10 @@ linked_list_to_array:
         jr ra
         
 #############################################################################################
-#Input: a0: Puntatore testa // a1: Indirizzo array
+#Input: a0: Head Pointer // a1: Array address
 
 array_to_sorted_list:
-    lw t0,0(a0) #testa della lista
+    lw t0,0(a0) #Head Pointer
     mv t1,t0
     loop_atsl:
         lb t2,0(a1)
