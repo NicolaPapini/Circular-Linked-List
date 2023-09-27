@@ -28,10 +28,25 @@ The program will accept the following commands:
 + SDX: Shifts the elements of the list of one position to the right.
 + SSX: Shits the elements of the list of one position to the left.
 
-Commands are correctly formatted if written like previously listed. Before and after the command whitespaces are accepted.
+Commands are correctly formatted if written like previously listed. Whitespaces are accepted before and after the command.
 The program will read the input string, whenever a correctly formatted command is found it will execute the corresponding function. This will continue until the string is finished.
 
-##Example Usage
+## Examples
+
+
+listInput = “ADD(1) ~ ADD(a) ~ ADD(a) ~ ADD(B) ~ ADD(;) ~ ADD(9) ~ SSX ~ SORT ~ DEL(b) ~DEL(B) ~ SDX ~ REV ~ PRINT”
+
+| ADD(1) | ADD(a) | ADD(a) | ADD(B) | ADD(;) | ADD(9) |  SSX  |  SORT  | DEL(b) | DEL(B) |  SDX  |   REV | PRINT |
+| ------ | ------ |------- | ------ |------- | ------ |-------| ------ | ------ | ------ | ----- | ----  | ----- |
+|    1   |  1a    | 1aa    | 1aaB   | 1aaB;  | 1aaB;9 | aaB;91| ;19aaB | ;19aaB | ;19aa  | a;19a | a91;a | a91;a |
+
+
+
+listInput = “ADD(3) ~ SSX ~ ADD(x) ~ add(B) ~ ADD(B) ~ ADD ~ ADD(9) ~ SORT(a) ~ DEL(BB) ~ DEL(B) ~ REV ~ SDX ~ PRINT”
+
+| ADD(3) | SSX | ADD(x) | add(B) | ADD(B) | ADD | ADD(9) | SORT(a) | DEL(BB) | DEL(B) |  REV  |  SDX | PRINT |
+| ------ | --- |------- | ------ |------- | --- |--------| ------- | ------- | ------ | ----- | ---- | ----- |
+|    3   |  3  | 3x     | 1x     | 1xB    | 1xB | 1xB9   | 1xB9    | 1xB9    | 1x9    | 9x1   | 19x  | 19x |
 
 
 
